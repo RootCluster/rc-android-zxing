@@ -1,32 +1,77 @@
 # rc-android-zxing
 
-之前关于二维码扫描这块都是集成别人已经封装好的开源库，自己一直没有去细致的学习。二维码作为应用开发中不可或缺的组件，那么接下来的一段时间主要围绕官方zxing项目android模块的深入学习
+该分支仅作为源码阅读学习，此分支上做任何修改
 
-## Branch 
+## import project
 
+官方项目  
+![zxing](images/zxing-project.png)
+
+准备工作
+* 下载官方项目[zxing](https://github.com/zxing/zxing)
+* 使用 AS 创建一个新Project
+
+> 编译环境
+>* android studio：3.4
+>* gradle：5.1.1
+>* sdk：28
+
+导入步骤
+* 导入module  
+    ![import_module](images/import_module.png)
+* 选择module  
+    ![select_import_module](images/select_import_module.png)
+* 移除最小及目标版本设置  
+    ![remove_min_target_version](images/remove_min_target_version.png)
+* 添加项目核心依赖  
+    ![import_dependencies](images/import_dependencies.png)
+* 删除 `app` module（可选，该分支已删除）
+
+## show project
+![zxing](images/zxing.gif)
+
+## solve problem
+<img src="images/project_problem.png" width="800" hegiht="313" align=center />
+
+运行错误日志  
+![zxing_error_log](images/zxing_error_log.png)
+
+### 解决方法  
+* 打开应用设置，手动设置应用相机权限
+* 代码中加入权限校验
+```java
+// CaptureActivity.jaca
+// line 266 && line 443
+mHolder = surfaceHolder;
+if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1) {
+    if (ContextCompat.checkSelfPermission(CaptureActivity.this,
+           android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+        // 先判断有没有权限 ，没有就在这里进行权限的申请
+        ActivityCompat.requestPermissions(CaptureActivity.this,
+            new String[]{Manifest.permission.CAMERA}, CAMERA_OK);
+        } else {
+             // 说明已经获取到摄像头权限了
+             initCamera(surfaceHolder);
+         }
+    } else {
+        initCamera(surfaceHolder);
+}
+
+// line 803
+@Override
+public void onRequestPermissionsResult(int requestCode
+        , @NonNull String[] permissions, @NonNull int[] grantResults) {
+    // If request is cancelled, the result arrays are empty.
+    if (requestCode == CAMERA_OK) {
+        if (grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // permission was granted, yay! Do the
+            // contacts-related task you need to do.
+            initCamera(mHolder);
+        }
+    }
+}
 ```
-rc-android-zxing（branch）
-    ├── master         # 项目主分支：主要用作实践封装发布版本
-    ├── dev            # 项目开发分支：主要对源码学习后的实践封装抽取开发
-    └── origin         # zxing官方源码：主要用作源码学习
-```
 
-* 官方项目[导入步骤](https://github.com/RootCluster/rc-android-zxing/tree/origin)
-
-## License
-
-```
-Copyright (c) 2019 Jerry xu.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+### 其他问题
+* 同样我们在`EncodeActivity.java`文件中加入读取内存卡的权限`READ_EXTERNAL_STORAGE`
